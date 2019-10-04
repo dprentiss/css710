@@ -1,5 +1,8 @@
 \documentclass{beamer}
 \usepackage{listings}
+\usepackage[default]{sourcecodepro}
+\usepackage[default]{sourcesanspro}
+\usepackage[T1]{fontenc}
 \begin{document}
 \title{Zero Intelligence Traders on GPUs with CUDA}
 \author{David Prentiss}
@@ -7,7 +10,7 @@
 
 \lstset{
   language = C,
-  basicstyle = \tiny\ttfamily,
+  basicstyle = \fontsize{7.5}{7.7}\selectfont\ttfamily,
   keywordstyle = \color{blue}
 }
 
@@ -18,38 +21,89 @@
   stuff
 \end{frame}
 
+\section{Comparing CUDA and pthreads}
 \begin{frame}[fragile]
-  \frametitle{Some code}
-\begin{lstlisting}
-//void *DoTrades (void *threadN)
-__global__
-void doTrades(Agent *Buyers, Agent *Sellers) {
-    //
-    //	This function pairs agents at random and then selects a price randomly...
-    //
+  \frametitle{Allocating Memory}
+  pthreads
+\begin{lstlisting}[frame=single]
+Agent Buyers[numberOfBuyers];
+Agent Sellers[numberOfSellers];
+\end{lstlisting}
 
-    curandState_t state;
-    curand_init(0, 0, 0, &state);
-
-    int i, buyerIndex, sellerIndex;
-    int bidPrice, askPrice, transactionPrice;
-    //int threadNum = *(int*) threadN;
+  CUDA
+\begin{lstlisting}[frame=single]
+size_t agentSize = numberOfBuyers * sizeof(Agent);
+cudaMallocManaged(&Buyers, agentSize);
+cudaMallocManaged(&Sellers, agentSize);
 \end{lstlisting}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Launching threads}
-\begin{lstlisting}
-for (threadNumber = 0; threadNumber < numThreads; threadNumber++)
-{
+  pthreads
+\begin{lstlisting}[frame=single]
+int threadNumber, status;
+pthread_t threads[numThreads];
+int args[numThreads];
+
+for (threadNumber = 0; threadNumber < numThreads; threadNumber++) {
     args[threadNumber] = threadNumber;
-    status = pthread_create(&threads[threadNumber], NULL,
-                            DoTrades, &args[threadNumber]);
-};
+    status = pthread_create(&threads[threadNumber], NULL, DoTrades,
+                            &args[threadNumber]);
+}
 \end{lstlisting}
 
-\begin{lstlisting}
-doTrades<<<1, numThreads>>>(Buyers, Sellers);
+  CUDA
+\begin{lstlisting}[frame=single]
+doTrades<<<numBlocks, numThreads>>>(Buyers, Sellers);
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Joining threads}
+  pthreads
+\begin{lstlisting}[frame=single]
+void *threadResult[numThreads];
+
+for (threadNumber = 0; threadNumber < numThreads; threadNumber++) {
+    status = pthread_join(threads[threadNumber],
+                          &threadResult[threadNumber]);
+}
+\end{lstlisting}
+
+  CUDA
+\begin{lstlisting}[frame=single]
+cudaDeviceSynchronize();
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Threaded Function}
+  pthreads
+\begin{lstlisting}[frame=single]
+void *DoTrades (void *threadN)
+{
+    int threadNum = *(int*) threadN;
+    ...
+    bidPrice = (rand_r(&seeds[threadNum])
+        % Buyers[buyerIndex].value) + 1;
+    ...
+}
+\end{lstlisting}
+
+  CUDA
+\begin{lstlisting}[frame=single]
+__global__ void doTrades(Agent *Buyers, Agent *Sellers)
+{
+    curandState_t state;
+    curand_init(0, 0, 0, &state);
+
+    int threadNum = blockDim.x * blockIdx.x + threadIdx.x;
+    ...
+    bidPrice = (curand(&state)
+        % Buyers[buyerIndex].value) + 1;
+    ...
+}
 \end{lstlisting}
 \end{frame}
 
