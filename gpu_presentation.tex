@@ -1,0 +1,56 @@
+\documentclass{beamer}
+\usepackage{listings}
+\begin{document}
+\title{Zero Intelligence Traders on GPUs with CUDA}
+\author{David Prentiss}
+\date{\today}
+
+\lstset{
+  language = C,
+  basicstyle = \tiny\ttfamily,
+  keywordstyle = \color{blue}
+}
+
+\frame{\titlepage}
+
+\begin{frame}
+  \frametitle{Title}
+  stuff
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Some code}
+\begin{lstlisting}
+//void *DoTrades (void *threadN)
+__global__
+void doTrades(Agent *Buyers, Agent *Sellers) {
+    //
+    //	This function pairs agents at random and then selects a price randomly...
+    //
+
+    curandState_t state;
+    curand_init(0, 0, 0, &state);
+
+    int i, buyerIndex, sellerIndex;
+    int bidPrice, askPrice, transactionPrice;
+    //int threadNum = *(int*) threadN;
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Launching threads}
+\begin{lstlisting}
+for (threadNumber = 0; threadNumber < numThreads; threadNumber++)
+{
+    args[threadNumber] = threadNumber;
+    status = pthread_create(&threads[threadNumber], NULL,
+                            DoTrades, &args[threadNumber]);
+};
+\end{lstlisting}
+
+\begin{lstlisting}
+doTrades<<<1, numThreads>>>(Buyers, Sellers);
+\end{lstlisting}
+\end{frame}
+
+\end{document}
