@@ -1,4 +1,5 @@
 \documentclass{beamer}
+\usepackage{amsmath}
 \usepackage{listings}
 \usepackage[default]{sourcecodepro}
 \usepackage[default]{sourcesanspro}
@@ -18,7 +19,62 @@
 
 \begin{frame}
   \frametitle{Title}
-  stuff
+  Consider the vectors
+  \begin{align*}
+    \boldsymbol{a} &= \begin{bmatrix} 0 & 1 & 2 & 3 \end{bmatrix} \\
+    \boldsymbol{b} &= \begin{bmatrix} 6 & 5 & 8 & 7 \end{bmatrix}
+    \end{align*}
+    We want to compute the dot product
+  \begin{align*}
+    \boldsymbol{a}\cdot\boldsymbol{b} =
+    \boldsymbol{a}\boldsymbol{b}^\top & = \sum_{i=1}^n a_ib_i
+    \end{align*}
+\end{frame}
+
+\begin{frame}
+  \centering
+  \frametitle{Title}
+  \begin{array}{cccc}
+    0 & 1 & 2 & 3\\
+    \end{array}
+    \\
+  \begin{array}{|c|c|c|c|}
+    \hline
+    0 & 1 & 2 & 3\\
+    \hline
+  \end{array}
+  \\
+  $\times$ \\
+  \begin{array}{|c|c|c|c|}
+    \hline
+    6 & 5 & 8 & 7\\
+    \hline
+  \end{array}
+  \\
+  $=$ \\
+  \begin{array}{|c|c|c|c|}
+    \hline
+    0 & 5 & 16 & 21\\
+    \hline
+  \end{array}
+  \\
+  \begin{array}{|c|c|c|c|}
+    \hline
+    5 & 21 & 37 & 21\\
+    \hline
+  \end{array}
+  \\
+  \begin{array}{|c|c|c|c|}
+    \hline
+    42 & 42 & 42 & 42\\
+    \hline
+  \end{array}
+  \\
+\end{frame}
+
+\begin{frame}
+  \frametitle{Title}
+  tmp
 \end{frame}
 
 \section{Comparing CUDA and pthreads}
